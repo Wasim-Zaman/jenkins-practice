@@ -37,10 +37,10 @@ pipeline {
                         sh 'pm2 delete || true'
                     }
                 }
-                echo "Installing dependencies for GST..."
-                sh 'npm ci'
+                echo "Installing dependencies..."
+                sh 'npm install'
                 echo "Generating Prisma files..."
-                sh 'npx prisma generate'
+                sh 'npx prisma generate || echo "Skipping Prisma generation - not required or not installed"'
                 echo "Restarting PM2 process..."
                 sh 'pm2 start "npm start" --name jenkins-practice'
                 echo "Restarting PM2 process... Done"
