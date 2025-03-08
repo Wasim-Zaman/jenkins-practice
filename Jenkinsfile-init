@@ -1,9 +1,9 @@
 pipeline {
     agent any
 
-    // environment {
-    //     ENV_FILE_PATH = "C:\\ProgramData\\Jenkins\\.jenkins\\jenkinsEnv\\GST\\gst"
-    // }
+    environment {
+        ENV_FILE_PATH = "/var/lib/jenkins/envs"
+    }
 
     stages {
         stage('Checkout') {
