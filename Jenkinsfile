@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ENV_FILE_PATH = "C:\\ProgramData\\Jenkins\\.jenkins\\jenkinsEnv\\GST\\gst"
+        ENV_FILE_PATH = "/var/lib/jenkins/envs/.env"
     }
 
     stages {
@@ -12,8 +12,8 @@ pipeline {
                     branches: [[name: '*/main']], 
                     extensions: [], 
                     userRemoteConfigs: [[
-                        credentialsId: 'Wasim-Jenkins-Credentials', 
-                        url: 'https://github.com/GST-NARTEC/gst-backend.git'
+                        credentialsId: 'wasim-zaman-jenkins-credentials', 
+                        url: 'https://github.com/Wasim-Zaman/jenkins-practice.git'
                     ]]
                 )
             }
@@ -22,7 +22,7 @@ pipeline {
         stage('Setup Environment File') {
             steps {
                 echo "Copying environment file to the backend..."
-                bat "copy \"${ENV_FILE_PATH}\" \"%WORKSPACE%\\.env\""
+                sh "test -f ${ENV_FILE_PATH} && cp ${ENV_FILE_PATH} ${WORKSPACE}/.env || echo 'Environment file not found at ${ENV_FILE_PATH}'"
             }
         }
 
@@ -30,19 +30,20 @@ pipeline {
             steps {
                 script {
                     echo "Stopping PM2 process if running..."
-                    def processStatus = bat(script: 'pm2 list', returnStdout: true).trim()
-                    if (processStatus.contains('gst-ksa') || processStatus.contains('gst-ksa-workers')) {
-                        bat 'pm2 stop gst-ksa gst-ksa-workers || exit 0'
+                    def processStatus = sh(script: 'pm2 list', returnStdout: true).trim()
+                    if (processStatus.contains('jenkins-practice')) {
+                        sh 'pm2 stop jenkins-practice || true'
+                        sh 'pm2 delete jenkins-practice || true'
                     }
                 }
-                echo "Installing dependencies for GST-KSA..."
-                bat 'npm install'
+                echo "Installing dependencies..."
+                sh 'npm install'
                 echo "Generating Prisma files..."
-                bat 'npx prisma generate'
-                echo "Restarting PM2 process..."
-                bat 'pm2 restart gst-ksa gst-ksa-workers'
-                echo "Restarting PM2 process... Done"
-                bat 'pm2 save'
+                sh 'npx prisma generate || echo "Skipping Prisma generation - not required or not installed"'
+                echo "Starting application with PM2..."
+                sh 'pm2 start "npm start" --name jenkins-practice'
+                echo "PM2 process started."
+                sh 'pm2 save'
             }
         }
     }
