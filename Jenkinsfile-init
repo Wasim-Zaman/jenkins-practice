@@ -22,7 +22,7 @@ pipeline {
         stage('Setup Environment File') {
             steps {
                 echo "Copying environment file to the backend..."
-                bat "copy \"${ENV_FILE_PATH}\" \"%WORKSPACE%\\.env\""
+                sh "cp ${ENV_FILE_PATH} ${WORKSPACE}/.env"
             }
         }
 
@@ -30,21 +30,21 @@ pipeline {
             steps {
                 script {
                     echo "Stopping PM2 process if running..."
-                    def processStatus = bat(script: 'pm2 list', returnStdout: true).trim()
+                    def processStatus = sh(script: 'pm2 list', returnStdout: true).trim()
                     if (processStatus.contains('jenkins-practice') ) {
-                        bat 'pm2 stop jenkins-practice || exit 0'
-                        bat 'pm2 delete jenkins-practice || exit 0'
-                        bat 'pm2 delete || exit 0'
+                        sh 'pm2 stop jenkins-practice || true'
+                        sh 'pm2 delete jenkins-practice || true'
+                        sh 'pm2 delete || true'
                     }
                 }
                 echo "Installing dependencies for GST..."
-                bat 'npm ci'
+                sh 'npm ci'
                 echo "Generating Prisma files..."
-                bat 'npx prisma generate'
+                sh 'npx prisma generate'
                 echo "Restarting PM2 process..."
-                bat 'pm2 start "npm start" --name jenkins-practice'
+                sh 'pm2 start "npm start" --name jenkins-practice'
                 echo "Restarting PM2 process... Done"
-                bat 'pm2 save'
+                sh 'pm2 save'
             }
         }
     }
