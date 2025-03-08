@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        ENV_FILE_PATH = "/var/lib/jenkins/envs"
+        ENV_FILE_PATH = "/var/lib/jenkins/envs/.env"
     }
 
     stages {
@@ -22,7 +22,7 @@ pipeline {
         stage('Setup Environment File') {
             steps {
                 echo "Copying environment file to the backend..."
-                sh "cp ${ENV_FILE_PATH} ${WORKSPACE}/.env"
+                sh "test -f ${ENV_FILE_PATH} && cp ${ENV_FILE_PATH} ${WORKSPACE}/.env || echo 'Environment file not found at ${ENV_FILE_PATH}'"
             }
         }
 
